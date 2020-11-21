@@ -49,4 +49,7 @@ object IntervalsMain extends App {
     .select(longToIpStringUDF('start).as("start"), longToIpStringUDF('end).as("end"))
 
   disjointRangesDF.show()
+  val results = disjointRangesDF.collect().map(r => (r.getAs[String]("start"), r.getAs[String]("end")))
+
+  new ElasticsearchDataSaver().saveResult(results)
 }

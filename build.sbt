@@ -11,6 +11,7 @@ libraryDependencies ++= Seq(
 //  "org.apache.spark" %% "spark-core" % "3.0.1" % "provided",
   "org.apache.spark" %% "spark-sql" % "3.0.1" % "provided",
   "org.postgresql" % "postgresql" % "42.2.18",
+  "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % "7.9.1"
 )
 
 mainClass in assembly := Some("sdrt.intervals.IntervalsMain")

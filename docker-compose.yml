@@ -46,15 +46,28 @@ services:
     volumes:
       - spark-postgres-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
     networks:
       spark-cluster:
         aliases:
           - postgres
+  elasticsearch:
+    image: elasticsearch:7.9.3
+    environment:
+      - discovery.type=single-node
+    volumes:
+      - spark-elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+    - 9200:9200
+    networks:
+      spark-cluster:
+        aliases:
+          - elasticsearch
 
 networks:
   spark-cluster:
 
 volumes:
   spark-postgres-data:
+  spark-elasticsearch-data:
