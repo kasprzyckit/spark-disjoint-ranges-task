@@ -1,10 +1,26 @@
 package intervals
 
+import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{udf, _}
+import org.postgresql
 
 object IntervalsMain extends App {
+  val classes = Seq(
+    getClass,
+    classOf[postgresql.Driver]
+  )
+  val jars = classes.map(_.getProtectionDomain.getCodeSource.getLocation.getPath())
+  val conf = new SparkConf().setJars(jars)
+  val spark: SparkSession = SparkSession.builder()
+    .config(conf)
+    .appName("DisjointIntervals")
+    .getOrCreate()
+
+  import spark.implicits._
+
+  val dataDF = new PostgresDataLoader(spark).load_data()
 
   def ipStringToLong: String => Long = (ip: String) =>
     ip.split("\\.").zipWithIndex.foldLeft(0.longValue) { case (acc, (n, i)) => acc | (n.toLong << ((3 - i) * 8)) }
@@ -16,24 +32,8 @@ object IntervalsMain extends App {
 
   val longToIpStringUDF = udf(longToIpString)
 
-  val spark: SparkSession = SparkSession.builder()
-    .appName("DisjointIntervals")
-    .getOrCreate()
-
-  import spark.implicits._
-
-  val data = Seq(
-    "197.203.0.0, 197.206.9.255",
-    "197.204.0.0, 197.204.0.24",
-    "201.233.7.160, 201.233.7.168",
-    "201.233.7.164, 201.233.7.168",
-    "201.233.7.167, 201.233.7.167",
-    "203.133.0.0, 203.133.255.255"
-  ).map(_.split(", ")).map(r => (r.head, r.last))
-
-  val dataDF = data.toDF("start", "end")
-
   val rangeUdf = udf((start: Long, end: Long) => start to end)
+
   val ipCountsDF = dataDF
     .select(ipStringToLongUdf('start).as("start"), ipStringToLongUdf('end).as("end"))
     .select(explode(rangeUdf('start, 'end)).as("ip"))
