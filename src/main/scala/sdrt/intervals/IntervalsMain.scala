@@ -34,18 +34,25 @@ object IntervalsMain extends App {
   val rangeUdf = udf((start: Long, end: Long) => start to end)
 
   val ipCountsDF = dataDF
+    // convert both addresses to numeric representation
     .select(ipStringToLongUdf('start).as("start"), ipStringToLongUdf('end).as("end"))
+    // generate each all addresses within the ranges
     .select(explode(rangeUdf('start, 'end)).as("ip"))
     .groupBy('ip)
     .agg(count("*").as("count"))
+    // remove intersections
     .filter('count === 1)
 
   val window = Window.orderBy('ip)
   val disjointRangesDF = ipCountsDF
     .withColumn("prev", lag('ip, 1).over(window))
+    // for each address check, whether it starts a range
     .withColumn("is_consecutive", coalesce('ip === 'prev + 1, lit(false)))
-    .withColumn("group_nb", sum(when('is_consecutive, lit(0)).otherwise(lit(1))).over(window))
-    .groupBy('group_nb).agg(min('ip).as("start"), max('ip).as("end"))
+    // determine the ranges
+    .withColumn("group_number", sum(when('is_consecutive, lit(0)).otherwise(lit(1))).over(window))
+    // merge ranges into single rows
+    .groupBy('group_number).agg(min('ip).as("start"), max('ip).as("end"))
+    // convert back to string representation
     .select(longToIpStringUDF('start).as("start"), longToIpStringUDF('end).as("end"))
 
   disjointRangesDF.show()
