@@ -1,4 +1,4 @@
-package intervals
+package sdrt.intervals
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 

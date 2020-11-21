@@ -36,6 +36,7 @@ services:
     environment:
       - SPARK_MASTER=spark://spark-master:7077
       - ENABLE_INIT_DAEMON=false
+      - IP_RANGES_COUNT=100
     networks:
       spark-cluster:
         aliases:

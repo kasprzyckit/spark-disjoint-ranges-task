@@ -10,10 +10,10 @@ scalaVersion := "2.12.11"
 libraryDependencies ++= Seq(
 //  "org.apache.spark" %% "spark-core" % "3.0.1" % "provided",
   "org.apache.spark" %% "spark-sql" % "3.0.1" % "provided",
-  "org.postgresql" % "postgresql" % "42.2.18"
+  "org.postgresql" % "postgresql" % "42.2.18",
 )
 
-mainClass in assembly := Some("intervals.IntervalsMain")
+mainClass in assembly := Some("sdrt.intervals.IntervalsMain")
 assemblyMergeStrategy in assembly := {
   case x if x.contains("module-info.class") => MergeStrategy.discard
   case x if x.contains("git.properties") => MergeStrategy.discard
@@ -31,3 +31,8 @@ assemblyMergeStrategy in assembly := {
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
 }
+
+val generator = project
+  .settings(
+    mainClass in assembly := Some("sdrt.generator.GeneratorMain")
+  )

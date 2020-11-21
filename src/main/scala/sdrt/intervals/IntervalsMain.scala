@@ -1,4 +1,4 @@
-package intervals
+package sdrt.intervals
 
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
@@ -7,6 +7,7 @@ import org.apache.spark.sql.functions.{udf, _}
 import org.postgresql
 
 object IntervalsMain extends App {
+
   val classes = Seq(
     getClass,
     classOf[postgresql.Driver]
@@ -25,13 +26,11 @@ object IntervalsMain extends App {
   def ipStringToLong: String => Long = (ip: String) =>
     ip.split("\\.").zipWithIndex.foldLeft(0.longValue) { case (acc, (n, i)) => acc | (n.toLong << ((3 - i) * 8)) }
 
-  val ipStringToLongUdf = udf(ipStringToLong)
-
   def longToIpString: Long => String = (ip: Long) =>
     ((ip >> 24) & 0xFF) + "." + ((ip >> 16) & 0xFF) + "." + ((ip >> 8) & 0xFF) + "." + (ip & 0xFF)
 
   val longToIpStringUDF = udf(longToIpString)
-
+  val ipStringToLongUdf = udf(ipStringToLong)
   val rangeUdf = udf((start: Long, end: Long) => start to end)
 
   val ipCountsDF = dataDF
